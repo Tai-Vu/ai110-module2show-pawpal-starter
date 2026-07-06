@@ -20,7 +20,7 @@ def test_adding_task_increases_pet_task_count():
     assert task in pet.get_tasks()
 
 
-def test_scheduler_orders_tasks_by_time_and_priority():
+def test_scheduler_returns_tasks_in_chronological_order():
     owner = Owner(name="Jordan")
     pet = Pet(name="Mochi", species="dog")
     owner.add_pet(pet)
@@ -41,7 +41,7 @@ def test_scheduler_orders_tasks_by_time_and_priority():
     assert ordered[2].description == "Evening play"
 
 
-def test_scheduler_detects_conflicting_tasks():
+def test_scheduler_detects_duplicate_scheduled_times():
     owner = Owner(name="Jordan")
     pet = Pet(name="Mochi", species="dog")
     owner.add_pet(pet)
@@ -84,7 +84,7 @@ def test_scheduler_filters_tasks_by_pet_and_completion_status():
     assert filtered_tasks == [pending_mochi_task]
 
 
-def test_scheduler_creates_next_occurrence_for_recurring_task():
+def test_marking_daily_task_complete_creates_next_occurrence():
     owner = Owner(name="Jordan")
     pet = Pet(name="Mochi", species="dog")
     owner.add_pet(pet)
@@ -122,3 +122,52 @@ def test_scheduler_returns_warning_for_conflicting_tasks():
     assert warning is not None
     assert "Warning" in warning
     assert "08:00" in warning
+
+
+def test_scheduler_handles_case_insensitive_priority_when_sorting():
+    owner = Owner(name="Jordan")
+    pet = Pet(name="Mochi", species="dog")
+    owner.add_pet(pet)
+
+    low_priority_task = Task(description="Grooming", scheduled_time="12:00", priority="LOW")
+    high_priority_task = Task(description="Walk", scheduled_time="09:00", priority="High")
+
+    pet.add_task(low_priority_task)
+    pet.add_task(high_priority_task)
+
+    scheduler = Scheduler(owner=owner)
+    ordered_tasks = scheduler.organize_tasks(owner)
+
+    assert [task.description for task in ordered_tasks] == ["Walk", "Grooming"]
+
+
+def test_scheduler_creates_next_occurrence_for_monthly_task():
+    owner = Owner(name="Jordan")
+    pet = Pet(name="Mochi", species="dog")
+    owner.add_pet(pet)
+
+    task = Task(description="Vet check", scheduled_time="15:00", frequency="monthly", priority="medium")
+    pet.add_task(task)
+
+    scheduler = Scheduler(owner=owner)
+    next_task = scheduler.mark_task_complete(task, pet_name="Mochi", owner=owner)
+
+    assert next_task is not None
+    assert next_task.frequency == "monthly"
+    assert next_task.is_complete() is False
+    assert next_task in pet.get_tasks()
+
+
+def test_scheduler_does_not_create_next_occurrence_for_non_recurring_task():
+    owner = Owner(name="Jordan")
+    pet = Pet(name="Mochi", species="dog")
+    owner.add_pet(pet)
+
+    task = Task(description="Brush teeth", scheduled_time="19:00", frequency="once", priority="low")
+    pet.add_task(task)
+
+    scheduler = Scheduler(owner=owner)
+    next_task = scheduler.mark_task_complete(task, pet_name="Mochi", owner=owner)
+
+    assert next_task is None
+    assert len(pet.get_tasks()) == 1

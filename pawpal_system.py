@@ -290,9 +290,9 @@ class Scheduler:
         pet_name: Optional[str] = None,
         owner: Optional[Owner] = None,
     ) -> Optional[Task]:
-        """Mark a task complete and create a new pending task for daily or weekly tasks."""
+        """Mark a task complete and create a new pending task for recurring tasks."""
         task.mark_complete()
-        if task.frequency.lower() in {"daily", "weekly"}:
+        if task.frequency.lower() in RECURRING_FREQUENCIES:
             next_task = task.create_next_occurrence()
             active_owner = owner or self.owner
             if active_owner is not None and pet_name is not None:
