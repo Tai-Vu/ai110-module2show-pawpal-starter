@@ -4,13 +4,14 @@
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+- My initial UML design centered on a simple pet-care planning system with four main classes: Owner, Pet, Task, and SchedulePlanner.
+- The Owner class would hold basic owner information and preferences, the Pet class would represent the animal and its basic care needs, and the Task class would represent each care activity with attributes such as title, duration, priority, and optional frequency.
+- The SchedulePlanner class would take the owner, pet, and list of tasks and generate a daily plan by selecting and ordering tasks based on constraints like time and importance.
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+- Yes. During implementation, I simplified the design slightly by keeping the scheduling logic in one planner component rather than splitting it into separate sorting, filtering, and conflict-resolution classes.
+- I made that change because the project is still fairly small, and a single planner made the system easier to understand, implement, and test without adding unnecessary complexity.
 
 ---
 

@@ -1,0 +1,51 @@
+classDiagram
+    class Owner {
+        +String name
+        +String email
+        +String availabilityStart
+        +String availabilityEnd
+        +List~String~ preferences
+        +addPreference()
+        +updateAvailability()
+        +getPreferences()
+    }
+
+    class Pet {
+        +String name
+        +String species
+        +String age
+        +List~String~ careNeeds
+        +String healthNotes
+        +addCareNeed()
+        +updateProfile()
+        +getCareNeeds()
+    }
+
+    class Task {
+        +String title
+        +String category
+        +Integer durationMinutes
+        +String priority
+        +String frequency
+        +String timeWindow
+        +updateDetails()
+        +isHighPriority()
+        +matchesPreferences()
+    }
+
+    class SchedulePlanner {
+        +Owner owner
+        +Pet pet
+        +List~Task~ tasks
+        +Integer dailyTimeLimit
+        +generatePlan()
+        +sortTasks()
+        +filterConflicts()
+        +explainPlan()
+    }
+
+    Owner "1" --> "1" Pet : owns
+    Pet "1" --> "0..*" Task : has
+    SchedulePlanner "1" --> "1" Owner : plans for
+    SchedulePlanner "1" --> "1" Pet : plans for
+    SchedulePlanner "1" --> "0..*" Task : schedules
