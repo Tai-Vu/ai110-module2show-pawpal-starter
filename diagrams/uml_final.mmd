@@ -1,0 +1,64 @@
+classDiagram
+    class Task {
+        +String description
+        +String scheduled_time
+        +String frequency
+        +Boolean completed
+        +String priority
+        +update_details(description, scheduled_time, frequency, priority)
+        +mark_complete()
+        +create_next_occurrence()
+        +mark_incomplete()
+        +is_complete()
+        +is_pending()
+        +to_dict()
+        +_time_to_minutes()
+    }
+
+    class Pet {
+        +String name
+        +String species
+        +String age
+        +List~Task~ tasks
+        +add_task(task)
+        +remove_task(task)
+        +get_tasks(completed)
+        +get_pending_tasks()
+        +get_completed_tasks()
+        +update_profile(age, species)
+    }
+
+    class Owner {
+        +String name
+        +String email
+        +List~Pet~ pets
+        +add_pet(pet)
+        +remove_pet(pet)
+        +get_pet(pet_name)
+        +get_all_tasks(completed)
+        +get_pending_tasks()
+        +get_completed_tasks()
+    }
+
+    class Scheduler {
+        +Owner owner
+        +set_owner(owner)
+        +get_all_tasks(owner)
+        +get_pending_tasks(owner)
+        +sort_by_time(tasks)
+        +organize_tasks(owner)
+        +filter_tasks(tasks, pet_name, completed, owner)
+        +get_tasks_for_pet(pet_name, owner, completed)
+        +get_recurring_tasks(owner)
+        +detect_conflicts(tasks)
+        +get_conflict_warning(owner)
+        +organize_tasks_by_pet(owner)
+        +add_task_to_pet(pet_name, task, owner)
+        +mark_task_complete(task, pet_name, owner)
+        +build_daily_plan(owner)
+    }
+
+    Owner "1" --> "0..*" Pet : owns
+    Pet "1" --> "0..*" Task : contains
+    Scheduler "0..1" --> "1" Owner : manages
+    Scheduler ..> Task : sorts, filters, and schedules
