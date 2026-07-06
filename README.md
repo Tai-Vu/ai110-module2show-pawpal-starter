@@ -73,14 +73,12 @@ Sample test output:
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
-
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Sorting behavior | `Scheduler.sort_by_time()` | Orders pending tasks by their scheduled time so the plan is easier to read. |
+| Filtering behavior | `Scheduler.filter_tasks()` | Filters tasks by pet name and/or completion status to focus on a specific view of the plan. |
+| Conflict detection | `Scheduler.detect_conflicts()` and `Scheduler.get_conflict_warning()` | Detects tasks that share the same scheduled time and reports a lightweight warning rather than crashing. |
+| Recurring task logic | `Task.create_next_occurrence()` and `Scheduler.mark_task_complete()` | Creates a fresh pending task when a daily or weekly task is completed. |
 
 ## 📸 Demo Walkthrough
 

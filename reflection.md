@@ -4,14 +4,18 @@
 
 **a. Initial design**
 
-- My initial UML design centered on a simple pet-care planning system with four main classes: Owner, Pet, Task, and SchedulePlanner.
-- The Owner class would hold basic owner information and preferences, the Pet class would represent the animal and its basic care needs, and the Task class would represent each care activity with attributes such as title, duration, priority, and optional frequency.
-- The SchedulePlanner class would take the owner, pet, and list of tasks and generate a daily plan by selecting and ordering tasks based on constraints like time and importance.
+- My initial UML design used four main classes: Owner, Pet, Task, and SchedulePlanner.
+- The Owner class represents the person managing the pet care routine. Its responsibility is to store basic owner information, availability, and preferences that influence how tasks are scheduled.
+- The Pet class represents the animal being cared for. Its responsibility is to store the pet’s identity, species, and care needs so the scheduler can account for what the pet requires.
+- The Task class represents an individual care activity such as a walk, feeding, medication, or grooming. Its responsibility is to hold details like the task title, duration, priority, and optional frequency.
+- The SchedulePlanner class coordinates the whole system. Its responsibility is to take the owner, pet, and list of tasks and generate a daily plan by sorting, filtering, and arranging tasks around the available time.
 
 **b. Design changes**
 
-- Yes. During implementation, I simplified the design slightly by keeping the scheduling logic in one planner component rather than splitting it into separate sorting, filtering, and conflict-resolution classes.
-- I made that change because the project is still fairly small, and a single planner made the system easier to understand, implement, and test without adding unnecessary complexity.
+- Yes. Based on the feedback, I adjusted the design so the relationships between the main classes are clearer and the scheduling logic is more realistic.
+- I added the idea that an Owner can be associated with one or more Pets, and that Tasks should be connected more directly to the pet-care context rather than existing as isolated items.
+- I also refined the planner so it should consider owner availability, task time windows, and potential conflicts when building a schedule, instead of treating the plan as a simple priority-based list.
+- These changes were made because they make the system easier to extend later and better reflect how a real pet care assistant would behave.
 
 ---
 
@@ -24,8 +28,8 @@
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+- One tradeoff my scheduler makes is that it only checks for exact time matches when detecting conflicts, rather than trying to reason about overlapping durations or task lengths.
+- That is reasonable for this project because the app is a lightweight pet-care planner, and exact time matching keeps the logic simple, predictable, and easy to explain while still catching obvious scheduling overlaps.
 
 ---
 

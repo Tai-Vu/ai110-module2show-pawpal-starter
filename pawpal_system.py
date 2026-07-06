@@ -4,6 +4,9 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 
+RECURRING_FREQUENCIES = {"daily", "weekly", "monthly"}
+
+
 @dataclass
 class Task:
     description: str
@@ -32,6 +35,15 @@ class Task:
     def mark_complete(self) -> None:
         """Mark the task as completed."""
         self.completed = True
+
+    def create_next_occurrence(self) -> "Task":
+        """Create a new pending task for the next occurrence of a recurring task."""
+        return Task(
+            description=self.description,
+            scheduled_time=self.scheduled_time,
+            frequency=self.frequency,
+            priority=self.priority,
+        )
 
     def mark_incomplete(self) -> None:
         """Mark the task as incomplete."""
@@ -164,6 +176,11 @@ class Scheduler:
             return []
         return active_owner.get_pending_tasks()
 
+    def sort_by_time(self, tasks: List[Task]) -> List[Task]:
+        """Return tasks ordered by their scheduled time in minutes."""
+        # How could this algorithm be simplified for better readability or performance?
+        return sorted(tasks, key=lambda task: task._time_to_minutes())
+
     def organize_tasks(self, owner: Optional[Owner] = None) -> List[Task]:
         """Arrange pending tasks by time and priority."""
         tasks = self.get_pending_tasks(owner)
@@ -177,6 +194,85 @@ class Scheduler:
             ),
         )
 
+    def filter_tasks(
+        self,
+        tasks: List[Task],
+        pet_name: Optional[str] = None,
+        completed: Optional[bool] = None,
+        owner: Optional[Owner] = None,
+    ) -> List[Task]:
+        """Return a filtered subset of tasks by pet name and/or completion status."""
+        active_owner = owner or self.owner
+        filtered_tasks = list(tasks)
+
+        if completed is not None:
+            filtered_tasks = [task for task in filtered_tasks if task.completed is completed]
+
+        if pet_name is not None:
+            if active_owner is None:
+                return []
+            pet = active_owner.get_pet(pet_name)
+            if pet is None:
+                return []
+            filtered_tasks = [task for task in filtered_tasks if task in pet.get_tasks()]
+
+        return filtered_tasks
+
+    def get_tasks_for_pet(self, pet_name: str, owner: Optional[Owner] = None, completed: Optional[bool] = None) -> List[Task]:
+        """Return tasks for a specific pet, optionally filtered by completion state."""
+        active_owner = owner or self.owner
+        if active_owner is None:
+            return []
+        pet = active_owner.get_pet(pet_name)
+        if pet is None:
+            return []
+        return pet.get_tasks(completed=completed)
+
+    def get_recurring_tasks(self, owner: Optional[Owner] = None) -> List[Task]:
+        """Return tasks that are marked as recurring such as daily or weekly tasks."""
+        tasks = self.get_all_tasks(owner)
+        return [task for task in tasks if task.frequency.lower() in RECURRING_FREQUENCIES]
+
+    def detect_conflicts(self, tasks: List[Task]) -> List[tuple[Task, Task]]:
+        """Detect tasks that share the same scheduled time."""
+        conflicts: List[tuple[Task, Task]] = []
+        for index, first_task in enumerate(tasks):
+            for second_task in tasks[index + 1 :]:
+                if first_task._time_to_minutes() == second_task._time_to_minutes():
+                    conflicts.append((first_task, second_task))
+        return conflicts
+
+    def get_conflict_warning(self, owner: Optional[Owner] = None) -> Optional[str]:
+        """Return a lightweight warning message when conflicting tasks are found."""
+        try:
+            active_owner = owner or self.owner
+            if active_owner is None:
+                return None
+
+            all_tasks = active_owner.get_all_tasks()
+            conflicts = self.detect_conflicts(all_tasks)
+            if not conflicts:
+                return None
+
+            first_task, second_task = conflicts[0]
+            return (
+                f"Warning: overlapping tasks detected at {first_task.scheduled_time} "
+                f"for {first_task.description} and {second_task.description}."
+            )
+        except Exception:
+            return "Warning: could not check for task conflicts."
+
+    def organize_tasks_by_pet(self, owner: Optional[Owner] = None) -> Dict[str, List[Task]]:
+        """Group pending tasks by pet name."""
+        active_owner = owner or self.owner
+        if active_owner is None:
+            return {}
+
+        grouped_tasks: Dict[str, List[Task]] = {}
+        for pet in active_owner.pets:
+            grouped_tasks[pet.name] = pet.get_pending_tasks()
+        return grouped_tasks
+
     def add_task_to_pet(self, pet_name: str, task: Task, owner: Optional[Owner] = None) -> bool:
         """Attach a task to a named pet for the selected owner."""
         active_owner = owner or self.owner
@@ -188,9 +284,24 @@ class Scheduler:
         pet.add_task(task)
         return True
 
-    def mark_task_complete(self, task: Task) -> None:
-        """Mark a task complete."""
+    def mark_task_complete(
+        self,
+        task: Task,
+        pet_name: Optional[str] = None,
+        owner: Optional[Owner] = None,
+    ) -> Optional[Task]:
+        """Mark a task complete and create a new pending task for daily or weekly tasks."""
         task.mark_complete()
+        if task.frequency.lower() in {"daily", "weekly"}:
+            next_task = task.create_next_occurrence()
+            active_owner = owner or self.owner
+            if active_owner is not None and pet_name is not None:
+                pet = active_owner.get_pet(pet_name)
+                if pet is not None:
+                    pet.add_task(next_task)
+                    return next_task
+            return next_task
+        return None
 
     def build_daily_plan(self, owner: Optional[Owner] = None) -> List[Task]:
         """Create a daily plan from pending tasks."""
